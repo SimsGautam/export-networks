@@ -3,6 +3,7 @@ import ast
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from tqdm import *
 
 def organize_data_by_countries(start_country, other_countries, year):
 	'''
@@ -125,7 +126,7 @@ def plot_top_centralities(centrality, years, num_countries):
 	'''
 	Produce a bar graph of the top num_countries centralities for every year in years
 	'''
-	for i,year in enumerate(years):
+	for i,year in tqdm(enumerate(years)):
 		centrality_tuples = get_all_centralities_given_year(year, num_countries)[centrality]
 		centrality_dic = {}
 		for country, centrality_value in centrality_tuples:
@@ -135,16 +136,17 @@ def plot_top_centralities(centrality, years, num_countries):
 		plt.figure(i+1)
 		plt.bar(np.arange(num_countries), values, align='center')
 		plt.xticks(np.arange(num_countries), labels)
-		plt.ylabel(centrality + ' Centrality')
-		plt.title(centrality +' Centrality Top Countries')
+		plt.ylabel('Eigenvector Centrality')
+		plt.title('Top Countries by Eigenvector Centrality in ' + str(year))
+		plt.ylim([0,1])
 	plt.show()
 
 if __name__ == '__main__':
 
 	years = [1995, 2000, 2005, 2010, 2015]
 	N = 10
-	for year in years:
-		print get_all_centralities_given_year(year, N)
-	plot_top_centralities('degree', years, N)
+	# for year in tqdm(years):
+	# 	get_all_centralities_given_year(year, N)
+	plot_top_centralities('eigen', years, N)
 
 	import pdb; pdb.set_trace()
