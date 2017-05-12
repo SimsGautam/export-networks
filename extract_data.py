@@ -2,6 +2,7 @@ import urllib2
 import ast
 import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
 
 def organize_data_by_countries(start_country, other_countries, year):
 	'''
@@ -26,7 +27,7 @@ def organize_data_by_countries(start_country, other_countries, year):
 	try:
 		response = urllib2.urlopen(url)
 	except:
-		print('failed to grab: ' + url)
+		#print('failed to grab: ' + url)
 		return all_country_data, other_countries
 
 	dump = response.read()
@@ -97,7 +98,7 @@ def get_centralities_dicts(graph):
 def translate_number_to_country(numbers_to_countries, list_of_tuples):
 	return [(numbers_to_countries[country], value) for country, value in list_of_tuples]
 
-def get_all_centralities_given_year(year):
+def get_all_centralities_given_year(year, num_countries):
 	'''
 	Given a year returns a mapping from a centrality_string to a list of 10 tuples.
 	Each tuple has a country and its corresponding centrality value.
@@ -115,15 +116,35 @@ def get_all_centralities_given_year(year):
 
 	centralities = get_centralities_dicts(g)
 	for centrality_string in centralities.keys():
-		highest_countries = get_n_highest_centralities(centralities[centrality_string], 10)
+		highest_countries = get_n_highest_centralities(centralities[centrality_string], num_countries)
 		country_value_tuples = translate_number_to_country(numbers_to_countries, highest_countries)
 		top_ten_per_centrality[centrality_string] = country_value_tuples
 	return top_ten_per_centrality
 
+def plot_top_centralities(centrality, years, num_countries):
+	'''
+	Produce a bar graph of the top num_countries centralities for every year in years
+	'''
+	for i,year in enumerate(years):
+		centrality_tuples = get_all_centralities_given_year(year, num_countries)[centrality]
+		centrality_dic = {}
+		for country, centrality_value in centrality_tuples:
+			centrality_dic[country] = centrality_value
+		country_value_tuples = get_n_highest_centralities(centrality_dic, num_countries)
+		labels, values = map(lambda x: x[0], country_value_tuples), map(lambda x: x[1], country_value_tuples)
+		plt.figure(i+1)
+		plt.bar(np.arange(num_countries), values, align='center')
+		plt.xticks(np.arange(num_countries), labels)
+		plt.ylabel(centrality + ' Centrality')
+		plt.title(centrality +' Centrality Top Countries')
+	plt.show()
 
 if __name__ == '__main__':
 
-	for year in [1995, 2000, 2005, 2010,2015]:
-		print get_all_centralities_given_year(year)
+	years = [1995, 2000, 2005, 2010, 2015]
+	N = 10
+	for year in years:
+		print get_all_centralities_given_year(year, N)
+	plot_top_centralities('degree', years, N)
 
 	import pdb; pdb.set_trace()
